@@ -11,15 +11,6 @@ public class PollingActiveEserviceResponse {
   @JsonProperty("id")
   private String id;
 
-  @JsonProperty("eserviceName")
-  private String eserviceName;
-
-  @JsonProperty("producerName")
-  private String producerName;
-
-  @JsonProperty("versionNumber")
-  private Integer versionNumber;
-
   @JsonProperty("technology")
   private EserviceTechnology technology;
 

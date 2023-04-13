@@ -10,7 +10,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 public class SqsConfig {
 
 
-  @Bean()
+  @Bean
   public AmazonSQSAsync amazonSQSAsync() {
     return AmazonSQSAsyncClientBuilder.standard()
         .withCredentials(new DefaultAWSCredentialsProviderChain()).build();
