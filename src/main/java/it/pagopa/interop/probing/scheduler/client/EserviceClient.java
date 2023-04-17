@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceResponse;
 
 @FeignClient(name = "eserviceClient",
-    url = "${api.operations.baseUrl}" + "${api.eservice.basePath}")
+    url = "${api.operations.baseUrl}" + "${api.operations.eservice.basePath}")
 public interface EserviceClient {
 
   @GetMapping("/pollingEserviceActive")
