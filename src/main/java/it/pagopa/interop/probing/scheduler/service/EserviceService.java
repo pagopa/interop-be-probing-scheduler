@@ -1,7 +1,7 @@
 package it.pagopa.interop.probing.scheduler.service;
 
-import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceResponse;
+import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
 
 public interface EserviceService {
-  PollingActiveEserviceResponse getEservicesActive(Integer limit, Integer offset);
+  PollingEserviceResponse getEservicesReadyForPolling(Integer limit, Integer offset);
 }

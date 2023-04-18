@@ -5,7 +5,7 @@ import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 import lombok.Data;
 
 @Data
-public class PollingActiveEserviceContent {
+public class EserviceContent {
   @JsonProperty("id")
   private String id;
 

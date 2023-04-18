@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceContent;
-import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceResponse;
+import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +32,12 @@ public class ScheduledTasks {
     log.info("scheduler started at: {}", LocalDateTime.now(ZoneOffset.UTC));
     Integer offset = 0;
     while (true) {
-      PollingActiveEserviceResponse response = eserviceService.getEservicesActive(limit, offset);
-      for (PollingActiveEserviceContent service : response.getContent()) {
+      PollingEserviceResponse response = eserviceService.getEservicesReadyForPolling(limit, offset);
+      for (EserviceContent service : response.getContent()) {
         try {
           servicesSend.sendMessage(service);
         } catch (IOException e) {
-          log.error("Error while sending the service with id {} to SQS", service.getId());
+          log.error("Error while sending the service with record id {} to SQS", service.getId());
         }
       }
       if ((offset + limit) >= response.getTotalElements()) {

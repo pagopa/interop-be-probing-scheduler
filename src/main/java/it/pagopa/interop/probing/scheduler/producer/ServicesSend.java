@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -25,10 +25,10 @@ public class ServicesSend {
   private ObjectMapper objectMapper;
 
 
-  public void sendMessage(PollingActiveEserviceContent service) throws IOException {
+  public void sendMessage(EserviceContent service) throws IOException {
     SendMessageRequest sendMessageRequest = new SendMessageRequest().withQueueUrl(sqsUrl)
         .withMessageBody(objectMapper.writeValueAsString(service));
     amazonSQS.sendMessage(sendMessageRequest);
-    log.info("Service with id {} has been published in SQS.", service.getId());
+    log.info("Service with record id {} has been published in SQS.", service.getId());
   }
 }

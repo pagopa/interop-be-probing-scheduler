@@ -6,12 +6,12 @@ import lombok.Data;
 
 
 @Data
-public class PollingActiveEserviceResponse {
+public class PollingEserviceResponse {
 
   @JsonProperty("content")
-  private List<PollingActiveEserviceContent> content;
+  private List<EserviceContent> content;
 
   @JsonProperty("totalElements")
-  private Long totalElements;
+  private Integer totalElements;
 
 }
