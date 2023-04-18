@@ -1,20 +1,17 @@
 package it.pagopa.interop.probing.scheduler.dto;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 import lombok.Data;
 
 
 @Data
 public class PollingActiveEserviceResponse {
 
-  @JsonProperty("id")
-  private String id;
+  @JsonProperty("content")
+  private List<PollingActiveEserviceContent> content;
 
-  @JsonProperty("technology")
-  private EserviceTechnology technology;
-
-  @JsonProperty("basePath")
-  private String[] basePath;
+  @JsonProperty("totalElements")
+  private Long totalElements;
 
 }

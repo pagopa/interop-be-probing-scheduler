@@ -1,9 +1,9 @@
 package it.pagopa.interop.probing.scheduler.client;
 
-import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceResponse;
 
 @FeignClient(name = "eserviceClient",
@@ -11,6 +11,8 @@ import it.pagopa.interop.probing.scheduler.dto.PollingActiveEserviceResponse;
 public interface EserviceClient {
 
   @GetMapping("/pollingEserviceActive")
-  ResponseEntity<List<PollingActiveEserviceResponse>> getEservicesActive();
+  ResponseEntity<PollingActiveEserviceResponse> getEservicesActive(
+      @RequestParam(value = "limit", required = true) Integer limit,
+      @RequestParam(value = "offset", required = true) Integer offset);
 
 }
