@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 import lombok.Data;
 
-
 @Data
-public class PollingActiveEserviceResponse {
-
+public class EserviceContent {
   @JsonProperty("id")
   private String id;
 
@@ -16,5 +14,4 @@ public class PollingActiveEserviceResponse {
 
   @JsonProperty("basePath")
   private String[] basePath;
-
 }
