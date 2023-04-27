@@ -29,6 +29,6 @@ public class ServicesSend {
     SendMessageRequest sendMessageRequest = new SendMessageRequest().withQueueUrl(sqsUrl)
         .withMessageBody(objectMapper.writeValueAsString(service));
     amazonSQS.sendMessage(sendMessageRequest);
-    log.info("Service with record id {} has been published in SQS.", service.getId());
+    log.info("Service with record id {} has been published in SQS.", service.getEserviceRecordId());
   }
 }

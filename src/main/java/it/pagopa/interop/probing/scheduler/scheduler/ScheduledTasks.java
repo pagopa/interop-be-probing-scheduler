@@ -37,7 +37,7 @@ public class ScheduledTasks {
         try {
           servicesSend.sendMessage(service);
         } catch (IOException e) {
-          log.error("Error while sending the service with record id {} to SQS", service.getId());
+          log.error("Error while sending the service with record id {} to SQS", service.getEserviceRecordId());
         }
       }
       if ((offset + limit) >= response.getTotalElements()) {
