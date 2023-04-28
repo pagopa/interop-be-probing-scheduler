@@ -18,6 +18,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>17</java.version>
 		<spring.cloud.version>2020.0.3</spring.cloud.version>
+		<javax.validation.api>2.0.1.Final</javax.validation.api>
 	</properties>
 	<organization>
 		<name>PagoPa</name>
@@ -79,7 +80,7 @@
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-			<version>2.0.1.Final</version>
+			<version>${javax.validation.api}</version>
 		</dependency>
 	</dependencies>
 	<build>
