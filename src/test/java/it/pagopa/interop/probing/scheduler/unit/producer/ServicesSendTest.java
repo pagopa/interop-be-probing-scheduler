@@ -36,7 +36,7 @@ class ServicesSendTest {
   void setup() {
     String[] basePath = {"basePath1", "basePath2"};
     ReflectionTestUtils.setField(servicesSend, "sqsUrl", TEST_URL);
-    eServiceDTO = EserviceContent.builder().basePath(basePath).id("1")
+    eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
         .technology(EserviceTechnology.REST).build();
 
   }

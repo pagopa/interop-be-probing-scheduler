@@ -40,7 +40,7 @@ public class ScheduledTasksTest {
   void setup() {
     String[] basePath = {"basePath1", "basePath2"};
     ReflectionTestUtils.setField(scheduledTasks, "limit", 10);
-    EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).id("1")
+    EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
         .technology(EserviceTechnology.REST).build();
     response = PollingEserviceResponse.builder().totalElements(12)
         .content(Arrays.asList(eServiceDTO)).build();
