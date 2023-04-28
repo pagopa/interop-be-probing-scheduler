@@ -6,11 +6,13 @@ import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
 import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
@@ -20,13 +22,12 @@ import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class ScheduledTasksTest {
 
   @InjectMocks
+  @Autowired
   ScheduledTasks scheduledTasks;
-
-  @SpyBean
-  ScheduledTasks scheduledTasks2;
 
   @Mock
   ServicesSend servicesSend;
@@ -34,13 +35,14 @@ public class ScheduledTasksTest {
   @Mock
   EserviceService eserviceService;
 
+
   private PollingEserviceResponse response;
 
   @BeforeEach
   void setup() {
     String[] basePath = {"basePath1", "basePath2"};
     ReflectionTestUtils.setField(scheduledTasks, "limit", 10);
-    EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).id("1")
+    EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
         .technology(EserviceTechnology.REST).build();
     response = PollingEserviceResponse.builder().totalElements(12)
         .content(Arrays.asList(eServiceDTO)).build();

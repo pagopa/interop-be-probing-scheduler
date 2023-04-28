@@ -8,14 +8,13 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
-import lombok.extern.slf4j.Slf4j;
+import it.pagopa.interop.probing.scheduler.util.logging.Logger;
 
 
 @Service
-@Slf4j
 public class ServicesSend {
 
-  @Value("${amazon.sqs.end-point.poll-queue}")
+  @Value("${amazon.sqs.endpoint.poll-queue}")
   private String sqsUrl;
 
   @Autowired
@@ -24,11 +23,14 @@ public class ServicesSend {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private Logger logger;
+
 
   public void sendMessage(EserviceContent service) throws IOException {
     SendMessageRequest sendMessageRequest = new SendMessageRequest().withQueueUrl(sqsUrl)
         .withMessageBody(objectMapper.writeValueAsString(service));
     amazonSQS.sendMessage(sendMessageRequest);
-    log.info("Service with record id {} has been published in SQS.", service.getId());
+    logger.logQueueSendSuccess(service.getEserviceRecordId());
   }
 }

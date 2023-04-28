@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class EserviceContent {
   @JsonProperty("id")
-  private String id;
+  private Long eserviceRecordId;
 
   @JsonProperty("technology")
   private EserviceTechnology technology;
