@@ -1,11 +1,11 @@
 package it.pagopa.interop.probing.scheduler.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import it.pagopa.interop.probing.scheduler.annotations.ValidateStringArraySize;
-import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import it.pagopa.interop.probing.scheduler.annotations.ValidateStringArraySize;
+import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 import lombok.Builder;
 import lombok.Data;
 

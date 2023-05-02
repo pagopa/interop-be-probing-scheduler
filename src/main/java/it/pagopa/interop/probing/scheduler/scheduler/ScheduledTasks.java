@@ -1,8 +1,8 @@
 package it.pagopa.interop.probing.scheduler.scheduler;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.util.UUID;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,25 +11,30 @@ import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
 import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.service.EserviceService;
-import lombok.extern.slf4j.Slf4j;
+import it.pagopa.interop.probing.scheduler.util.logging.Logger;
+import it.pagopa.interop.probing.scheduler.util.logging.LoggingPlaceholders;
 
 
 @Component
-@Slf4j
 public class ScheduledTasks {
 
   @Autowired
-  EserviceService eserviceService;
+  private EserviceService eserviceService;
 
   @Autowired
-  ServicesSend servicesSend;
+  private Logger logger;
+
+  @Autowired
+  private ServicesSend servicesSend;
 
   @Value("${scheduler.limit}")
-  Integer limit;
+  private Integer limit;
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
-    log.info("scheduler started at: {}", LocalDateTime.now(ZoneOffset.UTC));
+    MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
+        "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
+    logger.logSchedulerStart();
     Integer offset = 0;
     while (true) {
       PollingEserviceResponse response = eserviceService.getEservicesReadyForPolling(limit, offset);
@@ -37,7 +42,7 @@ public class ScheduledTasks {
         try {
           servicesSend.sendMessage(service);
         } catch (IOException e) {
-          log.error("Error while sending the service with record id {} to SQS", service.getEserviceRecordId());
+          logger.logQueueSendError(service.getEserviceRecordId());
         }
       }
       if ((offset + limit) >= response.getTotalElements()) {
@@ -45,6 +50,7 @@ public class ScheduledTasks {
       }
       offset += limit;
     }
-    log.info("scheduler ended at: {}", LocalDateTime.now(ZoneOffset.UTC));
+    logger.logSchedulerEnd();
+    MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
   }
 }
