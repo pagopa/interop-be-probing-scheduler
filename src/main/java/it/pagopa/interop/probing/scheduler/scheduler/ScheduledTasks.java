@@ -2,6 +2,7 @@ package it.pagopa.interop.probing.scheduler.scheduler;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class ScheduledTasks {
         try {
           servicesSend.sendMessage(service);
           eserviceClient.updateLastRequest(service.getEserviceRecordId(),
-              ChangeLastRequest.builder().lastRequest(OffsetDateTime.now()).build());
+              ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
         } catch (IOException e) {
           logger.logQueueSendError(service.getEserviceRecordId());
         }
