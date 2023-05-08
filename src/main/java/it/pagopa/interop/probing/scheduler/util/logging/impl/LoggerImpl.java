@@ -1,6 +1,7 @@
 package it.pagopa.interop.probing.scheduler.util.logging.impl;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.springframework.stereotype.Component;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
@@ -28,6 +29,17 @@ public class LoggerImpl implements Logger {
   @Override
   public void logQueueSendSuccess(Long eserviceRecordId) {
     log.info("Service with record id {} has been published in SQS.", eserviceRecordId);
+  }
+
+  @Override
+  public void logGetEserviceActive(Integer limit, Integer offset) {
+    log.info("calling operations getEserviceActive. limit={}, offset={}", limit, offset);
+  }
+
+  @Override
+  public void logUpdateLastRequest(Long eserviceRecordId, OffsetDateTime lastRequest) {
+    log.info("calling operations logUpdateLastRequest. eserviceRecordId={}, lastRequest={}",
+        eserviceRecordId, lastRequest);
   }
 
 

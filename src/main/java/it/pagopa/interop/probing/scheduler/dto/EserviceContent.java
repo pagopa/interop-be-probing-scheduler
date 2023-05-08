@@ -13,7 +13,7 @@ import lombok.Data;
 @Builder
 public class EserviceContent {
 
-  @JsonProperty("id")
+  @JsonProperty("eserviceRecordId")
   @NotNull(message = "must not be null")
   @Min(value = 1, message = "must be at least 1")
   private Long eserviceRecordId;

@@ -13,12 +13,14 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import it.pagopa.interop.probing.scheduler.client.EserviceClient;
 import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
 import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.scheduler.ScheduledTasks;
-import it.pagopa.interop.probing.scheduler.service.EserviceService;
+import it.pagopa.interop.probing.scheduler.service.impl.EserviceServiceImpl;
 import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 
 @SpringBootTest
@@ -32,11 +34,14 @@ public class ScheduledTasksTest {
   @Mock
   ServicesSend servicesSend;
 
+  @InjectMocks
+  @Autowired
+  EserviceServiceImpl eserviceServiceImpl;
+
   @Mock
-  EserviceService eserviceService;
+  EserviceClient eserviceClient;
 
-
-  private PollingEserviceResponse response;
+  private ResponseEntity<PollingEserviceResponse> response;
 
   @BeforeEach
   void setup() {
@@ -44,8 +49,8 @@ public class ScheduledTasksTest {
     ReflectionTestUtils.setField(scheduledTasks, "limit", 10);
     EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
         .technology(EserviceTechnology.REST).build();
-    response = PollingEserviceResponse.builder().totalElements(12)
-        .content(Arrays.asList(eServiceDTO)).build();
+    response = ResponseEntity.ok(PollingEserviceResponse.builder().totalElements(12)
+        .content(Arrays.asList(eServiceDTO)).build());
 
 
   }
@@ -53,9 +58,11 @@ public class ScheduledTasksTest {
   @Test
   @DisplayName("The scheduleFixedDelayTask method of ScheduledTasks class is tested.")
   void testScheduledTask_thenDoesNotThrowException() throws IOException {
-    Mockito.when(eserviceService.getEservicesReadyForPolling(Mockito.any(), Mockito.any()))
+    Mockito.when(eserviceClient.getEservicesReadyForPolling(Mockito.any(), Mockito.any()))
         .thenReturn(response);
-    Mockito.doNothing().when(servicesSend).sendMessage(response.getContent().get(0));
+    Mockito.doNothing().when(servicesSend).sendMessage(response.getBody().getContent().get(0));
+    Mockito.when(eserviceClient.updateLastRequest(Mockito.any(), Mockito.any()))
+        .thenReturn(ResponseEntity.noContent().build());
     scheduledTasks.scheduleFixedDelayTask();
     assertDoesNotThrow(() -> scheduledTasks.scheduleFixedDelayTask());
   }
