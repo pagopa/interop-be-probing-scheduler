@@ -38,7 +38,7 @@ public class LoggerImpl implements Logger {
 
   @Override
   public void logUpdateLastRequest(Long eserviceRecordId, OffsetDateTime lastRequest) {
-    log.info("calling operations logUpdateLastRequest. eserviceRecordId={}, lastRequest={}",
+    log.info("calling operations updateLastRequest. eserviceRecordId={}, lastRequest={}",
         eserviceRecordId, lastRequest);
   }
 
