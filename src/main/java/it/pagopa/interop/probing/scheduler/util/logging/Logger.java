@@ -7,7 +7,7 @@ public interface Logger {
 
   void logSchedulerEnd();
 
-  void logQueueSendError(Long eserviceRecordId);
+  void logGenericError(Long eserviceRecordId);
 
   void logQueueSendSuccess(Long eserviceRecordId);
 

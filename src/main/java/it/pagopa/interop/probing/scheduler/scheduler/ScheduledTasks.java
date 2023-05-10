@@ -1,6 +1,5 @@
 package it.pagopa.interop.probing.scheduler.scheduler;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -48,7 +47,7 @@ public class ScheduledTasks {
               ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
           servicesSend.sendMessage(service);
         } catch (Exception e) {
-          logger.logQueueSendError(service.getEserviceRecordId());
+          logger.logGenericError(service.getEserviceRecordId());
         }
       }
       if ((offset + limit) >= response.getTotalElements()) {

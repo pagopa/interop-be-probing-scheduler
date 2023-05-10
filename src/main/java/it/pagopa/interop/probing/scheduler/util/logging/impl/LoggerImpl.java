@@ -22,13 +22,13 @@ public class LoggerImpl implements Logger {
   }
 
   @Override
-  public void logQueueSendError(Long eserviceRecordId) {
-    log.error("Error while sending the service with record id {} to SQS", eserviceRecordId);
+  public void logGenericError(Long eserviceRecordId) {
+    log.error("An error occurred during elaboration. eserviceRecordId={}", eserviceRecordId);
   }
 
   @Override
   public void logQueueSendSuccess(Long eserviceRecordId) {
-    log.info("Service with record id {} has been published in SQS.", eserviceRecordId);
+    log.info("e-service has been published to SQS queue. eserviceRecordId={}", eserviceRecordId);
   }
 
   @Override
