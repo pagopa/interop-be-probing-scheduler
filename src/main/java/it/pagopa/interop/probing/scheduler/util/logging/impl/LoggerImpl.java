@@ -33,12 +33,12 @@ public class LoggerImpl implements Logger {
 
   @Override
   public void logGetEserviceActive(Integer limit, Integer offset) {
-    log.info("calling operations getEserviceActive. limit={}, offset={}", limit, offset);
+    log.info("Getting e-services to poll. limit={}, offset={}", limit, offset);
   }
 
   @Override
   public void logUpdateLastRequest(Long eserviceRecordId, OffsetDateTime lastRequest) {
-    log.info("calling operations updateLastRequest. eserviceRecordId={}, lastRequest={}",
+    log.info("Updating e-service last polling request time. eserviceRecordId={}, lastRequest={}",
         eserviceRecordId, lastRequest);
   }
 

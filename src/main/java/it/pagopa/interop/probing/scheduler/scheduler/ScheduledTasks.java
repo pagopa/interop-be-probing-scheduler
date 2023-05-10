@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import it.pagopa.interop.probing.scheduler.dto.ChangeLastRequest;
-import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
-import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
+import it.pagopa.interop.probing.scheduler.dto.impl.ChangeLastRequest;
+import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.impl.PollingEserviceResponse;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
@@ -44,10 +44,10 @@ public class ScheduledTasks {
       PollingEserviceResponse response = eserviceService.getEservicesReadyForPolling(limit, offset);
       for (EserviceContent service : response.getContent()) {
         try {
-          servicesSend.sendMessage(service);
           eserviceService.updateLastRequest(service.getEserviceRecordId(),
               ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-        } catch (IOException e) {
+          servicesSend.sendMessage(service);
+        } catch (Exception e) {
           logger.logQueueSendError(service.getEserviceRecordId());
         }
       }

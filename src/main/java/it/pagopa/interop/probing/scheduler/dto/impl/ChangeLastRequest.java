@@ -1,5 +1,6 @@
-package it.pagopa.interop.probing.scheduler.dto;
+package it.pagopa.interop.probing.scheduler.dto.impl;
 
+import it.pagopa.interop.probing.scheduler.dto.Dto;
 import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ChangeLastRequest {
+public class ChangeLastRequest implements Dto {
 
   @NotNull(message = "must not be null")
   @JsonProperty("lastRequest")
