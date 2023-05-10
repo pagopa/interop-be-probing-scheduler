@@ -49,7 +49,7 @@ public class ScheduledTasks {
                 .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
             servicesSend.sendMessage(service);
           } catch (Exception e) {
-            logger.logGenericError(service.getEserviceRecordId());
+            logger.logException(e, service.getEserviceRecordId());
           }
         }
         if ((offset + limit) >= response.getTotalElements()) {
@@ -58,7 +58,7 @@ public class ScheduledTasks {
         offset += limit;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.logException(e);
     } finally {
       logger.logSchedulerEnd();
       MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);

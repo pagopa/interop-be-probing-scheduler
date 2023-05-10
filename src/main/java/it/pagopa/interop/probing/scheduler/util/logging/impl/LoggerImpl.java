@@ -3,6 +3,7 @@ package it.pagopa.interop.probing.scheduler.util.logging.impl;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +23,8 @@ public class LoggerImpl implements Logger {
   }
 
   @Override
-  public void logGenericError(Long eserviceRecordId) {
-    log.error("An error occurred during elaboration. eserviceRecordId={}", eserviceRecordId);
+  public void logException(Exception exception, Long eserviceRecordId) {
+    log.error("An error occurred during elaboration. eserviceRecordId={}, stacktrace=\n{}", eserviceRecordId, ExceptionUtils.getStackTrace(exception));
   }
 
   @Override
@@ -42,5 +43,8 @@ public class LoggerImpl implements Logger {
         eserviceRecordId, lastRequest);
   }
 
-
+  @Override
+  public void logException(Exception exception) {
+    log.error(ExceptionUtils.getStackTrace(exception));
+  }
 }
