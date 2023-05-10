@@ -38,24 +38,30 @@ public class ScheduledTasks {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     logger.logSchedulerStart();
-    Integer offset = 0;
-    while (true) {
-      PollingEserviceResponse response = eserviceService.getEservicesReadyForPolling(limit, offset);
-      for (EserviceContent service : response.getContent()) {
-        try {
-          eserviceService.updateLastRequest(service.getEserviceRecordId(),
-              ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-          servicesSend.sendMessage(service);
-        } catch (Exception e) {
-          logger.logGenericError(service.getEserviceRecordId());
+    try {
+      Integer offset = 0;
+      while (true) {
+        PollingEserviceResponse response =
+            eserviceService.getEservicesReadyForPolling(limit, offset);
+        for (EserviceContent service : response.getContent()) {
+          try {
+            eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
+                .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
+            servicesSend.sendMessage(service);
+          } catch (Exception e) {
+            logger.logGenericError(service.getEserviceRecordId());
+          }
         }
+        if ((offset + limit) >= response.getTotalElements()) {
+          break;
+        }
+        offset += limit;
       }
-      if ((offset + limit) >= response.getTotalElements()) {
-        break;
-      }
-      offset += limit;
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      logger.logSchedulerEnd();
+      MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
     }
-    logger.logSchedulerEnd();
-    MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
   }
 }
