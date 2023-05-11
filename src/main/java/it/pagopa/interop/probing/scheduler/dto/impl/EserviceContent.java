@@ -1,6 +1,6 @@
 package it.pagopa.interop.probing.scheduler.dto.impl;
 
-import it.pagopa.interop.probing.scheduler.dto.Dto;
+import it.pagopa.interop.probing.scheduler.dto.Response;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class EserviceContent implements Dto {
+public class EserviceContent implements Response {
 
   @JsonProperty("eserviceRecordId")
   @NotNull(message = "must not be null")
