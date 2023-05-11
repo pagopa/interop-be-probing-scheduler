@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import it.pagopa.interop.probing.scheduler.dto.ChangeLastRequest;
-import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
+import it.pagopa.interop.probing.scheduler.dto.impl.ChangeLastRequest;
+import it.pagopa.interop.probing.scheduler.dto.impl.PollingEserviceResponse;
 
 @FeignClient(name = "eserviceClient",
     url = "${api.operations.baseUrl}" + "${api.operations.eservice.basePath}")

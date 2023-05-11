@@ -15,7 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.util.EserviceTechnology;
 

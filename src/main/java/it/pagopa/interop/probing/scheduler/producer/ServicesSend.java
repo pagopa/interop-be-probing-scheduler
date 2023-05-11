@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
 
 

@@ -1,6 +1,5 @@
 package it.pagopa.interop.probing.scheduler.scheduler;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -9,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import it.pagopa.interop.probing.scheduler.dto.ChangeLastRequest;
-import it.pagopa.interop.probing.scheduler.dto.EserviceContent;
-import it.pagopa.interop.probing.scheduler.dto.PollingEserviceResponse;
+import it.pagopa.interop.probing.scheduler.dto.impl.ChangeLastRequest;
+import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
+import it.pagopa.interop.probing.scheduler.dto.impl.PollingEserviceResponse;
 import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
@@ -39,24 +38,30 @@ public class ScheduledTasks {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     logger.logSchedulerStart();
-    Integer offset = 0;
-    while (true) {
-      PollingEserviceResponse response = eserviceService.getEservicesReadyForPolling(limit, offset);
-      for (EserviceContent service : response.getContent()) {
-        try {
-          servicesSend.sendMessage(service);
-          eserviceService.updateLastRequest(service.getEserviceRecordId(),
-              ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-        } catch (IOException e) {
-          logger.logQueueSendError(service.getEserviceRecordId());
+    try {
+      Integer offset = 0;
+      while (true) {
+        PollingEserviceResponse response =
+            eserviceService.getEservicesReadyForPolling(limit, offset);
+        for (EserviceContent service : response.getContent()) {
+          try {
+            eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
+                .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
+            servicesSend.sendMessage(service);
+          } catch (Exception e) {
+            logger.logException(e, service.getEserviceRecordId());
+          }
         }
+        if ((offset + limit) >= response.getTotalElements()) {
+          break;
+        }
+        offset += limit;
       }
-      if ((offset + limit) >= response.getTotalElements()) {
-        break;
-      }
-      offset += limit;
+    } catch (Exception e) {
+      logger.logException(e);
+    } finally {
+      logger.logSchedulerEnd();
+      MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
     }
-    logger.logSchedulerEnd();
-    MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
   }
 }
