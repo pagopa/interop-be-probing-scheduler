@@ -46,9 +46,10 @@ public class ScheduledTasksTest {
   @BeforeEach
   void setup() {
     String[] basePath = {"basePath1", "basePath2"};
+    String[] audience = {"audience"};
     ReflectionTestUtils.setField(scheduledTasks, "limit", 10);
     EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
-        .technology(EserviceTechnology.REST).build();
+        .technology(EserviceTechnology.REST).audience(audience).build();
     response = ResponseEntity.ok(PollingEserviceResponse.builder().totalElements(12)
         .content(Arrays.asList(eServiceDTO)).build());
 
