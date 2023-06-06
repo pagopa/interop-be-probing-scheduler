@@ -3,6 +3,7 @@ package it.pagopa.interop.probing.scheduler.scheduler;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,8 @@ public class ScheduledTasks {
   @Value("${scheduler.limit}")
   private Integer limit;
 
+  private Integer offset;
+
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
@@ -39,20 +42,26 @@ public class ScheduledTasks {
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     logger.logSchedulerStart();
     try {
-      Integer offset = 0;
+      offset = 0;
       while (true) {
-        PollingEserviceResponse response =
-            eserviceService.getEservicesReadyForPolling(limit, offset);
-        for (EserviceContent service : response.getContent()) {
+        CompletableFuture<PollingEserviceResponse> response = CompletableFuture
+            .supplyAsync(() -> eserviceService.getEservicesReadyForPolling(limit, offset));
+        for (EserviceContent service : response.get().getContent()) {
           try {
-            eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
-                .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-            servicesSend.sendMessage(service);
+            CompletableFuture.runAsync(() -> {
+              try {
+                eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
+                    .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
+                servicesSend.sendMessage(service);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            });
           } catch (Exception e) {
             logger.logException(e, service.getEserviceRecordId());
           }
         }
-        if ((offset + limit) >= response.getTotalElements()) {
+        if ((offset + limit) >= response.get().getTotalElements()) {
           break;
         }
         offset += limit;
