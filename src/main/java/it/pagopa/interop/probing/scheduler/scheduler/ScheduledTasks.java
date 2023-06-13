@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +34,8 @@ public class ScheduledTasks {
   @Value("${scheduler.limit}")
   private Integer limit;
 
-  private Integer offset;
-
+  @Autowired
+  private ExecutorService executor;
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
@@ -42,29 +43,30 @@ public class ScheduledTasks {
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     logger.logSchedulerStart();
     try {
-      offset = 0;
+      Integer offset = 0;
+      PollingEserviceResponse response = PollingEserviceResponse.builder().build();
+
       while (true) {
-        CompletableFuture<PollingEserviceResponse> response = CompletableFuture
-            .supplyAsync(() -> eserviceService.getEservicesReadyForPolling(limit, offset));
-        for (EserviceContent service : response.get().getContent()) {
-          try {
-            CompletableFuture.runAsync(() -> {
+        response = eserviceService.getEservicesReadyForPolling(limit, offset);
+
+        if (!response.getContent().isEmpty()) {
+          CompletableFuture<Void> future = new CompletableFuture<Void>();
+          for (EserviceContent service : response.getContent()) {
+            future = CompletableFuture.runAsync(() -> {
               try {
                 eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
                     .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
                 servicesSend.sendMessage(service);
               } catch (Exception e) {
-                e.printStackTrace();
+                logger.logException(e, service.getEserviceRecordId());
               }
-            });
-          } catch (Exception e) {
-            logger.logException(e, service.getEserviceRecordId());
+            }, executor);
           }
+          future.get();
         }
-        if ((offset + limit) >= response.get().getTotalElements()) {
+        if (limit >= response.getTotalElements()) {
           break;
         }
-        offset += limit;
       }
     } catch (Exception e) {
       logger.logException(e);

@@ -50,7 +50,7 @@ public class ScheduledTasksTest {
     ReflectionTestUtils.setField(scheduledTasks, "limit", 10);
     EserviceContent eServiceDTO = EserviceContent.builder().basePath(basePath).eserviceRecordId(1L)
         .technology(EserviceTechnology.REST).audience(audience).build();
-    response = ResponseEntity.ok(PollingEserviceResponse.builder().totalElements(12)
+    response = ResponseEntity.ok(PollingEserviceResponse.builder().totalElements(1)
         .content(Arrays.asList(eServiceDTO)).build());
 
 
@@ -61,10 +61,9 @@ public class ScheduledTasksTest {
   void testScheduledTask_thenDoesNotThrowException() throws IOException {
     Mockito.when(eserviceClient.getEservicesReadyForPolling(Mockito.any(), Mockito.any()))
         .thenReturn(response);
-    Mockito.doNothing().when(servicesSend).sendMessage(response.getBody().getContent().get(0));
     Mockito.when(eserviceClient.updateLastRequest(Mockito.any(), Mockito.any()))
         .thenReturn(ResponseEntity.noContent().build());
-    scheduledTasks.scheduleFixedDelayTask();
+    Mockito.doNothing().when(servicesSend).sendMessage(response.getBody().getContent().get(0));
     assertDoesNotThrow(() -> scheduledTasks.scheduleFixedDelayTask());
   }
 
