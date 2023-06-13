@@ -44,10 +44,9 @@ public class ScheduledTasks {
     logger.logSchedulerStart();
     try {
       Integer offset = 0;
-      PollingEserviceResponse response = PollingEserviceResponse.builder().build();
-
       while (true) {
-        response = eserviceService.getEservicesReadyForPolling(limit, offset);
+        PollingEserviceResponse response =
+            eserviceService.getEservicesReadyForPolling(limit, offset);
 
         if (!response.getContent().isEmpty()) {
           CompletableFuture<Void> future = new CompletableFuture<Void>();
