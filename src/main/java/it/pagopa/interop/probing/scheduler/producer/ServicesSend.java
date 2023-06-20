@@ -4,7 +4,8 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +21,7 @@ public class ServicesSend {
   private String sqsUrl;
 
   @Autowired
-  private AmazonSQS amazonSQS;
+  private AmazonSQSAsync amazonSQS;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -31,7 +32,9 @@ public class ServicesSend {
 
   public void sendMessage(EserviceContent service) throws IOException {
     SendMessageRequest sendMessageRequest = new SendMessageRequest().withQueueUrl(sqsUrl)
-        .withMessageBody(objectMapper.writeValueAsString(service));
+        .withMessageBody(objectMapper.writeValueAsString(service))
+        .addMessageAttributesEntry("AWSTraceHeader",
+            new MessageAttributeValue().withDataType("String").withStringValue(""));
     amazonSQS.sendMessage(sendMessageRequest);
     logger.logQueueSendSuccess(service.getEserviceRecordId());
   }
