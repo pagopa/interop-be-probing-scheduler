@@ -60,6 +60,7 @@ public class ScheduledTasks {
     try {
       Integer offset = 0;
       while (true) {
+        AWSXRay.setTraceEntity(entity);
         AWSXRay.beginSubsegment(LoggingPlaceholders.SEARCH_SUBSEGMENT_PLACEHOLDER);
         PollingEserviceResponse response =
             eserviceService.getEservicesReadyForPolling(limit, offset);
