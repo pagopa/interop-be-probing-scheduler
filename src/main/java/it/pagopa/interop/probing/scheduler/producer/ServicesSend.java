@@ -34,7 +34,7 @@ public class ServicesSend {
     SendMessageRequest sendMessageRequest = new SendMessageRequest().withQueueUrl(sqsUrl)
         .withMessageBody(objectMapper.writeValueAsString(service))
         .addMessageAttributesEntry("AWSTraceHeader",
-            new MessageAttributeValue().withDataType("String").withStringValue(""));
+            new MessageAttributeValue().withDataType("String").withStringValue("test"));
     amazonSQS.sendMessage(sendMessageRequest);
     logger.logQueueSendSuccess(service.getEserviceRecordId());
   }
