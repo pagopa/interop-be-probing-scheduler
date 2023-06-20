@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.amazonaws.xray.AWSXRay;
+import com.amazonaws.xray.entities.TraceID;
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import it.pagopa.interop.probing.scheduler.dto.impl.ChangeLastRequest;
 import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
 import it.pagopa.interop.probing.scheduler.dto.impl.PollingEserviceResponse;
@@ -18,8 +21,8 @@ import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
 import it.pagopa.interop.probing.scheduler.util.logging.LoggingPlaceholders;
 
-
 @Component
+@XRayEnabled
 public class ScheduledTasks {
 
   @Autowired
@@ -34,6 +37,9 @@ public class ScheduledTasks {
   @Value("${scheduler.limit}")
   private Integer limit;
 
+  @Value("${spring.application.name}")
+  private String awsXraySegmentName;
+
   @Autowired
   private ExecutorService executor;
 
@@ -41,21 +47,35 @@ public class ScheduledTasks {
   public void scheduleFixedDelayTask() {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
+    AWSXRay.beginSegment(awsXraySegmentName);
+    MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
+        LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
+            + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
     logger.logSchedulerStart();
+    TraceID traceID = AWSXRay.getCurrentSegment().getTraceId();
+    AWSXRay.endSegment();
     try {
       Integer offset = 0;
       while (true) {
+        AWSXRay.beginSegment(awsXraySegmentName, traceID, null);
+        AWSXRay.beginSubsegment(LoggingPlaceholders.SEARCH_SUBSEGMENT_PLACEHOLDER);
         PollingEserviceResponse response =
             eserviceService.getEservicesReadyForPolling(limit, offset);
-
+        AWSXRay.endSubsegment();
+        AWSXRay.endSegment();
         if (!response.getContent().isEmpty()) {
           CompletableFuture<Void> future = new CompletableFuture<Void>();
           for (EserviceContent service : response.getContent()) {
             future = CompletableFuture.runAsync(() -> {
               try {
+                AWSXRay.beginSegment(awsXraySegmentName, traceID, null);
+                AWSXRay.beginSubsegment(LoggingPlaceholders.UPDATE_LAST_REQ_SUBSEGMENT_PLACEHOLDER
+                    + service.getEserviceRecordId());
                 eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
                     .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
                 servicesSend.sendMessage(service);
+                AWSXRay.endSubsegment();
+                AWSXRay.endSegment();
               } catch (Exception e) {
                 logger.logException(e, service.getEserviceRecordId());
               }
