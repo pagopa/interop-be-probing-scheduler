@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import com.amazonaws.xray.AWSXRay;
-import com.amazonaws.xray.entities.Entity;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import it.pagopa.interop.probing.scheduler.dto.impl.ChangeLastRequest;
 import it.pagopa.interop.probing.scheduler.dto.impl.EserviceContent;
@@ -45,12 +44,10 @@ public class ScheduledTasks {
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
-    AWSXRay.beginSegment(awsXraySegmentName);
-    schedulerStart(AWSXRay.getTraceEntity());
-    AWSXRay.endSegment();
+    schedulerStart();
   }
 
-  public void schedulerStart(Entity entity) {
+  public void schedulerStart() {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
@@ -60,7 +57,6 @@ public class ScheduledTasks {
     try {
       Integer offset = 0;
       while (true) {
-        AWSXRay.setTraceEntity(entity);
         AWSXRay.beginSubsegment(LoggingPlaceholders.SEARCH_SUBSEGMENT_PLACEHOLDER);
         PollingEserviceResponse response =
             eserviceService.getEservicesReadyForPolling(limit, offset);
@@ -70,7 +66,6 @@ public class ScheduledTasks {
           for (EserviceContent service : response.getContent()) {
             future = CompletableFuture.runAsync(() -> {
               try {
-                AWSXRay.setTraceEntity(entity);
                 AWSXRay.beginSubsegment(LoggingPlaceholders.UPDATE_LAST_REQ_SUBSEGMENT_PLACEHOLDER
                     + service.getEserviceRecordId());
                 eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
