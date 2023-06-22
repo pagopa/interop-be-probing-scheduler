@@ -50,14 +50,15 @@ public class ScheduledTasks {
   public void schedulerStart() {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
-    MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
-        LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
-            + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
+
     logger.logSchedulerStart();
     try {
       Integer offset = 0;
       while (true) {
         AWSXRay.beginSubsegment(LoggingPlaceholders.SEARCH_SUBSEGMENT_PLACEHOLDER);
+        MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
+            LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
+                + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
         PollingEserviceResponse response =
             eserviceService.getEservicesReadyForPolling(limit, offset);
         AWSXRay.endSubsegment();
@@ -68,6 +69,9 @@ public class ScheduledTasks {
               try {
                 AWSXRay.beginSubsegment(LoggingPlaceholders.UPDATE_LAST_REQ_SUBSEGMENT_PLACEHOLDER
                     + service.getEserviceRecordId());
+                MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
+                    LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
+                        + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
                 eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
                     .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
                 servicesSend.sendMessage(service);
@@ -88,6 +92,7 @@ public class ScheduledTasks {
     } finally {
       logger.logSchedulerEnd();
       MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
+      MDC.remove(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER);
     }
   }
 }
