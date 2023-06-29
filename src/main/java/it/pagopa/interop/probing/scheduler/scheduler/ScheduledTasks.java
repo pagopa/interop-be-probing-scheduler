@@ -2,9 +2,11 @@ package it.pagopa.interop.probing.scheduler.scheduler;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,18 +51,10 @@ public class ScheduledTasks {
             eserviceService.getEservicesReadyForPolling(limit, offset);
 
         if (!response.getContent().isEmpty()) {
-          CompletableFuture<Void> future = new CompletableFuture<Void>();
-          for (EserviceContent service : response.getContent()) {
-            future = CompletableFuture.runAsync(() -> {
-              try {
-                eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
-                    .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-                servicesSend.sendMessage(service);
-              } catch (Exception e) {
-                logger.logException(e, service.getEserviceRecordId());
-              }
-            }, executor);
-          }
+          List<CompletableFuture<Void>> completableFutures = response.getContent().stream()
+              .map(service -> processEservice(service)).collect(Collectors.toList());
+          CompletableFuture<Void> future = CompletableFuture
+              .allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size()]));
           future.get();
         }
         if (limit >= response.getTotalElements()) {
@@ -73,5 +67,17 @@ public class ScheduledTasks {
       logger.logSchedulerEnd();
       MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
     }
+  }
+
+  private CompletableFuture<Void> processEservice(EserviceContent service) {
+    return CompletableFuture.runAsync(() -> {
+      try {
+        eserviceService.updateLastRequest(service.getEserviceRecordId(),
+            ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
+        servicesSend.sendMessage(service);
+      } catch (Exception e) {
+        logger.logException(e, service.getEserviceRecordId());
+      }
+    }, executor);
   }
 }
