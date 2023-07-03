@@ -55,7 +55,7 @@ public class ScheduledTasks {
     try {
       Integer offset = 0;
       while (true) {
-        AWSXRay.beginSegment(LoggingPlaceholders.SEARCH_SUBSEGMENT_PLACEHOLDER);
+        AWSXRay.beginSegment(awsXraySegmentName);
         MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
             LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
                 + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
@@ -63,12 +63,11 @@ public class ScheduledTasks {
             eserviceService.getEservicesReadyForPolling(limit, offset);
         AWSXRay.endSegment();
         if (!response.getContent().isEmpty()) {
-          CompletableFuture<Void> future = new CompletableFuture<Void>();
+          CompletableFuture<Void> future = new CompletableFuture<>();
           for (EserviceContent service : response.getContent()) {
             future = CompletableFuture.runAsync(() -> {
               try {
-                AWSXRay.beginSegment(LoggingPlaceholders.UPDATE_LAST_REQ_SUBSEGMENT_PLACEHOLDER
-                    + service.getEserviceRecordId());
+                AWSXRay.beginSegment(awsXraySegmentName);
                 MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
                     LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
                         + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
