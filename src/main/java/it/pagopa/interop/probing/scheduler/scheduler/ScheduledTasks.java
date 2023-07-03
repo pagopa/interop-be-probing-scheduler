@@ -2,9 +2,11 @@ package it.pagopa.interop.probing.scheduler.scheduler;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,7 @@ import it.pagopa.interop.probing.scheduler.producer.ServicesSend;
 import it.pagopa.interop.probing.scheduler.service.EserviceService;
 import it.pagopa.interop.probing.scheduler.util.logging.Logger;
 import it.pagopa.interop.probing.scheduler.util.logging.LoggingPlaceholders;
+
 
 @Component
 @XRayEnabled
@@ -38,19 +41,13 @@ public class ScheduledTasks {
 
   @Value("${spring.application.name}")
   private String awsXraySegmentName;
-
   @Autowired
   private ExecutorService executor;
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
-    schedulerStart();
-  }
-
-  public void schedulerStart() {
     MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
         "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
-
     logger.logSchedulerStart();
     try {
       Integer offset = 0;
@@ -63,23 +60,10 @@ public class ScheduledTasks {
             eserviceService.getEservicesReadyForPolling(limit, offset);
         AWSXRay.endSegment();
         if (!response.getContent().isEmpty()) {
-          CompletableFuture<Void> future = new CompletableFuture<>();
-          for (EserviceContent service : response.getContent()) {
-            future = CompletableFuture.runAsync(() -> {
-              try {
-                AWSXRay.beginSegment(awsXraySegmentName);
-                MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
-                    LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
-                        + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
-                eserviceService.updateLastRequest(service.getEserviceRecordId(), ChangeLastRequest
-                    .builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
-                servicesSend.sendMessage(service);
-                AWSXRay.endSegment();
-              } catch (Exception e) {
-                logger.logException(e, service.getEserviceRecordId());
-              }
-            }, executor);
-          }
+          List<CompletableFuture<Void>> completableFutures = response.getContent().stream()
+              .map(service -> processEservice(service)).collect(Collectors.toList());
+          CompletableFuture<Void> future = CompletableFuture
+              .allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size()]));
           future.get();
         }
         if (limit >= response.getTotalElements()) {
@@ -93,5 +77,22 @@ public class ScheduledTasks {
       MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
       MDC.remove(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER);
     }
+  }
+
+  private CompletableFuture<Void> processEservice(EserviceContent service) {
+    return CompletableFuture.runAsync(() -> {
+      try {
+        AWSXRay.beginSegment(awsXraySegmentName);
+        MDC.put(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER,
+            LoggingPlaceholders.TRACE_ID_XRAY_MDC_PREFIX
+                + AWSXRay.getCurrentSegment().getTraceId().toString() + "]");
+        eserviceService.updateLastRequest(service.getEserviceRecordId(),
+            ChangeLastRequest.builder().lastRequest(OffsetDateTime.now(ZoneOffset.UTC)).build());
+        servicesSend.sendMessage(service);
+        AWSXRay.endSegment();
+      } catch (Exception e) {
+        logger.logException(e, service.getEserviceRecordId());
+      }
+    }, executor);
   }
 }
