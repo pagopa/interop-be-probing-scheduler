@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.xray.AWSXRay;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,9 +62,7 @@ class ServicesSendTest {
     Mockito.when(amazonSQS.sendMessage(Mockito.any())).thenReturn(null);
     servicesSend.sendMessage(eServiceDTO);
     SendMessageRequest expectedSendMessageRequest = new SendMessageRequest().withQueueUrl(TEST_URL)
-        .withMessageBody(mapper.writeValueAsString(eServiceDTO))
-        .addMessageAttributesEntry("AWSTraceHeader",
-            new MessageAttributeValue().withDataType("String").withStringValue("test"));
+        .withMessageBody(mapper.writeValueAsString(eServiceDTO));
 
     Mockito.verify(amazonSQS).sendMessage(expectedSendMessageRequest);
   }
