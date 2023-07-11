@@ -3,7 +3,6 @@ package it.pagopa.interop.probing.scheduler.scheduler;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -46,8 +45,6 @@ public class ScheduledTasks {
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   public void scheduleFixedDelayTask() {
-    MDC.put(LoggingPlaceholders.TRACE_ID_PLACEHOLDER,
-        "- [CID= " + UUID.randomUUID().toString().toLowerCase() + "]");
     logger.logSchedulerStart();
     try {
       Integer offset = 0;
@@ -74,7 +71,6 @@ public class ScheduledTasks {
       logger.logException(e);
     } finally {
       logger.logSchedulerEnd();
-      MDC.remove(LoggingPlaceholders.TRACE_ID_PLACEHOLDER);
       MDC.remove(LoggingPlaceholders.TRACE_ID_XRAY_PLACEHOLDER);
     }
   }
